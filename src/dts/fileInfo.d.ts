@@ -1,8 +1,6 @@
-interface fileInfo {
-  id: string;
+interface fileDiscordInfo {
   filename: string;
-  size: number;
   url: string;
 }
 
-export default fileInfo;
+export default fileDiscordInfo;
