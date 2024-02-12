@@ -27,13 +27,7 @@ Once you have the required credentials, follow these steps:
 
 1. Clone the repository.
 2. Navigate to the backend folder.
-3. Create a `.env` file and provide your Discord user token and MongoDB URL in the following format:
-
-```env
-DISCORD_TOKEN=your_discord_token_here
-MONGODB_URL=your_mongodb_url_here
-```
-
+3. Create a `.env` file based on the exemple provided and fill your Discord user token and MongoDB URL
 4. Save the `.env` file.
 5. Start both the frontend and backend by running the following commands in each folders:
 
