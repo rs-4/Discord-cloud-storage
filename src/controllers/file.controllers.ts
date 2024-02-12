@@ -5,11 +5,23 @@ import uploadParse from "../middleware/uploadParse";
 import downloadParse from "../middleware/downloadIdParse";
 import checkFileExist from "../middleware/checkFileExist";
 import bodyParser from "body-parser";
+import { v4 as uuidv4 } from 'uuid';
+import socketIo from 'socket.io';
 
 const fileRouter = Router()
 
-fileRouter.get('/', (req: Request, res: Response) => {
-  return res.status(418).send('This is a cloud service provider using discord')
+fileRouter.get('/', async (req: Request, res: Response) => {
+  const data = await FileInfo.find();
+  if (!data)
+    return res.status(404).send('No document found')
+
+  var ret = [];
+
+  for (let x = 0; x < data.length; x++) {
+    ret.push({id:data[x]._id, name: data[x].filename, size: data[x].size});
+  }
+
+  return res.status(200).send(ret)
 })
 
 fileRouter.post('/upload', bodyParser.raw({ type: 'application/octet-stream', limit: '5gb' }), uploadParse, checkFileExist)
@@ -25,15 +37,47 @@ fileRouter.post('/upload', async (req: Request, res: Response) => {
 
 })
 
-fileRouter.get('/download', downloadParse,  async (req: Request, res: Response) => {
-  const fileClass = new FileHandlingClass(process.env.DISCORD_TOKEN as string)
-  const {id, name} = req.query
-  var file: {buffer: Buffer; filename: string;} | null = null
+
+fileRouter.post('/download', downloadParse, async (req: Request, res: Response) => {
+  const { id, name } = req.query;
+
+  let file;
 
   if (!id) {
-    file = await fileClass.retrieveFileByName(name as string)
+    file = await FileInfo.findOne({ filename: name as string });
+  } else {
+    file = await FileInfo.findById(id as string);
+  }
+
+  if (!file) {
+    return res.status(404).send('File not found');
+  }
+
+  // Generate a unique download token
+  const downloadToken = uuidv4();
+
+  // Emit the download token to the client over Socket.IO
+  const io: socketIo.Server = req.app.get('socketIo');
+  io.emit(`downloadToken:${downloadToken}`, { downloadToken });
+
+  // Now, return the download token to the client to initiate the download
+  return res.status(200).json({ downloadToken, fileId: file._id });
+});
+
+fileRouter.get('/download', downloadParse,  async (req: Request, res: Response) => {
+  const fileClass = new FileHandlingClass(process.env.DISCORD_TOKEN as string)
+  const {id, name, downloadToken} = req.query
+  var file: {buffer: Buffer; filename: string;} | null = null
+
+  // if (!downloadToken)
+  //   return res.status(400).send('Download token is required to track the download progress')
+
+  const io: socketIo.Server = req.app.get('socketIo');
+
+  if (!id) {
+    file = await fileClass.retrieveFileByName(name as string, downloadToken as string, io)
   } else
-    file = await fileClass.retrieveFileById(id as string)
+    file = await fileClass.retrieveFileById(id as string, downloadToken as string, io)
 
   if (!file)
     return res.status(404).send('File not found')

@@ -1,4 +1,5 @@
 import fs from "fs";
+import socketIo from "socket.io";
 
 //dts import
 import uploadedFileInfo from "../dts/uploadedFileInfo";
@@ -67,11 +68,11 @@ class FileHandlingClass {
 
     }
 
-    public async retrieveFileById(id: string): Promise<{ buffer: Buffer, filename: string } | null>{
+    public async retrieveFileById(id: string, downloadToken?: string, io?: socketIo.Server): Promise<{ buffer: Buffer, filename: string } | null>{
         const fileDocument: FileInfoDocument | null = await FileInfo.findById(id);
         if (!fileDocument)
             return null;
-        const buffer = await this.downloadFileService.downloadFile(fileDocument);
+        const buffer = await this.downloadFileService.downloadFile(fileDocument, downloadToken, io);
 
         return {
             buffer: buffer,
@@ -79,11 +80,11 @@ class FileHandlingClass {
         };
     }
 
-    public async retrieveFileByName(name: string): Promise<{ buffer: Buffer, filename: string } | null> {
+    public async retrieveFileByName(name: string, downloadToken?: string, io?: socketIo.Server): Promise<{ buffer: Buffer, filename: string } | null> {
         const fileDocument: FileInfoDocument | null = await FileInfo.findOne({ filename: name });
         if (!fileDocument)
             return null;
-        const buffer = await this.downloadFileService.downloadFile(fileDocument);
+        const buffer = await this.downloadFileService.downloadFile(fileDocument, downloadToken, io);
 
         return {
             buffer: buffer,
