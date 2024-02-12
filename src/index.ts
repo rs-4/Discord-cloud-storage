@@ -11,7 +11,12 @@ import './mongoConnection';
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  }
+
+});
 
 app.use(cors({
   origin: '*'
@@ -25,7 +30,6 @@ app.use("/api", Mainrouter);
 app.set('socketIo', io);
 
 io.on('connection', (socket) => {
-  console.log('A user connected');
 
   const room = socket.handshake.query.room as string;
   if (!room || room === 'undefined') {
@@ -33,9 +37,6 @@ io.on('connection', (socket) => {
   }
   socket.join(room);
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
 });
 
 

@@ -24,12 +24,28 @@ fileRouter.get('/', async (req: Request, res: Response) => {
   return res.status(200).send(ret)
 })
 
+fileRouter.get('/upload', async (req: Request, res: Response) => {
+
+  // Generate a unique download token
+  const uploadToken = uuidv4();
+
+  // Emit the download token to the client over Socket.IO
+  const io: socketIo.Server = req.app.get('socketIo');
+  io.emit(`downloadToken:${uploadToken}`, { uploadToken });
+
+  // Now, return the download token to the client to initiate the download
+  return res.status(200).json({ uploadToken});
+});
+
+
 fileRouter.post('/upload', bodyParser.raw({ type: 'application/octet-stream', limit: '5gb' }), uploadParse, checkFileExist)
 fileRouter.post('/upload', async (req: Request, res: Response) => {
 
   const fileClass = new FileHandlingClass(process.env.DISCORD_TOKEN as string)
 
-  const nfo = await fileClass.uploadFileFromBuffer(req.body, req.query.filename as string)
+  const io: socketIo.Server = req.app.get('socketIo');
+
+  const nfo = await fileClass.uploadFileFromBuffer(req.body, req.query.filename as string, req.query.uploadToken as string, io)
   const fileInfo = new FileInfo(nfo)
   await fileInfo.save()
 
@@ -68,9 +84,6 @@ fileRouter.get('/download', downloadParse,  async (req: Request, res: Response) 
   const fileClass = new FileHandlingClass(process.env.DISCORD_TOKEN as string)
   const {id, name, downloadToken} = req.query
   var file: {buffer: Buffer; filename: string;} | null = null
-
-  // if (!downloadToken)
-  //   return res.status(400).send('Download token is required to track the download progress')
 
   const io: socketIo.Server = req.app.get('socketIo');
 

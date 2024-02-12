@@ -24,7 +24,7 @@ class FileHandlingClass {
         this.downloadFileService = new downloadFileService();
     }
 
-    public async uploadFileFromBuffer(buffer: Buffer, fileName: string): Promise<uploadedFileInfo> {
+    public async uploadFileFromBuffer(buffer: Buffer, fileName: string, uploadToken: string, io?: socketIo.Server): Promise<uploadedFileInfo> {
 
         const BufferArray = this.uploadFileService.fileSlicer(buffer);
         const files = this.uploadFileService.fileBuilder(BufferArray, this.uploadFileService.fileName(fileName));
@@ -32,6 +32,10 @@ class FileHandlingClass {
 
         for (let i = 0; i < uploadInfo.length; i++) {
             await this.discordService.fileUploadRequest(uploadInfo[i].url, BufferArray[i]);
+            if (uploadToken) {
+                const progress = Math.floor((i + 1) / BufferArray.length * 100);
+                io?.to(uploadToken).emit('progress', progress);
+            }
         }
         const data = await this.discordService.retrieveFileUrl(uploadInfo);
 
