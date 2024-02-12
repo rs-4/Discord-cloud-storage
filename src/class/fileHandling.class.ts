@@ -23,7 +23,29 @@ class FileHandlingClass {
         this.downloadFileService = new downloadFileService();
     }
 
-    public async uploadFile(path: string): Promise<uploadedFileInfo> {
+    public async uploadFileFromBuffer(buffer: Buffer, fileName: string): Promise<uploadedFileInfo> {
+
+        const BufferArray = this.uploadFileService.fileSlicer(buffer);
+        const files = this.uploadFileService.fileBuilder(BufferArray, this.uploadFileService.fileName(fileName));
+        const uploadInfo = await this.discordService.attachementRequest(files);
+
+        for (let i = 0; i < uploadInfo.length; i++) {
+            await this.discordService.fileUploadRequest(uploadInfo[i].url, BufferArray[i]);
+        }
+        const data = await this.discordService.retrieveFileUrl(uploadInfo);
+
+        const uploadedFileInfo: uploadedFileInfo = {
+            filename: this.uploadFileService.fileName(fileName),
+            part: BufferArray.length,
+            size: buffer.length,
+            files: data
+        }
+
+        return uploadedFileInfo;
+
+    }
+
+    public async uploadFileFromPath(path: string): Promise<uploadedFileInfo> {
         const buffer = fs.readFileSync(path);
         const BufferArray = this.uploadFileService.fileSlicer(buffer);
         const files = this.uploadFileService.fileBuilder(BufferArray, this.uploadFileService.fileName(path));
@@ -45,22 +67,28 @@ class FileHandlingClass {
 
     }
 
-    public async retrieveFileById(id: string) {
+    public async retrieveFileById(id: string): Promise<{ buffer: Buffer, filename: string } | null>{
         const fileDocument: FileInfoDocument | null = await FileInfo.findById(id);
         if (!fileDocument)
             return null;
         const buffer = await this.downloadFileService.downloadFile(fileDocument);
 
-        return buffer;
+        return {
+            buffer: buffer,
+            filename: fileDocument.filename
+        };
     }
 
-    public async retrieveFileByName(name: string) {
+    public async retrieveFileByName(name: string): Promise<{ buffer: Buffer, filename: string } | null> {
         const fileDocument: FileInfoDocument | null = await FileInfo.findOne({ filename: name });
         if (!fileDocument)
             return null;
         const buffer = await this.downloadFileService.downloadFile(fileDocument);
 
-        return buffer;
+        return {
+            buffer: buffer,
+            filename: fileDocument.filename
+        };
     }
 
 }

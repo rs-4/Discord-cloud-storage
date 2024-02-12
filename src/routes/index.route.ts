@@ -1,8 +1,8 @@
 import { Router } from "express";
-import Filerouter from "../controllers/file.controllers";
+import fileRouter from "../controllers/file.controllers";
 
 const Mainrouter = Router()
 
-Mainrouter.use("/file", Filerouter)
+Mainrouter.use("/file", fileRouter)
 
 export default Mainrouter
