@@ -5,10 +5,11 @@ This project is a Proof of Concept (POC) that explores the idea of using Discord
 ## Project as a Portfolio
 
 This project has been made public to serve as a portfolio showcasing my development experience. It reflects the skills and expertise I gained during its development, including proficiency in file handling, Buffers, reverse engineering, and other related areas. The project aims to demonstrate my capabilities in creating innovative solutions and exploring unconventional approaches within the realm of web development.
+
 ## Branches
 
 ### 1. Frontend
-This branch contains the frontend code of the project. It's responsible for the user interface and interaction with the user. The code related to the frontend is organized within its own folder in the `Main` branch.
+This branch contains the frontend code of the project. It's responsible for the user interface and interaction with the user. The code related to the frontend is organized within its folder in the `Main` branch.
 
 ### 2. Backend
 The backend branch houses the server-side logic and functionalities. It is responsible for handling Discord authentication, communication with the Discord API, and managing interactions with the MongoDB database. Similar to the frontend, the backend code is organized within its designated folder in the `Main` branch.
@@ -27,13 +28,17 @@ Once you have the required credentials, follow these steps:
 
 1. Clone the repository.
 2. Navigate to the backend folder.
-3. Create a `.env` file based on the exemple provided and fill your Discord user token and MongoDB URL
+3. Create a `.env` file based on the example provided and fill in your Discord user token and MongoDB URL.
 4. Save the `.env` file.
-5. Start both the frontend and backend by running the following commands in each folders:
+5. Start both the frontend and backend by running the following commands in each folder:
 
 ```bash
 npm run dev
 ```
+
+## Improvements
+
+At the moment, the project lacks multithreading, and all different buffers are fully stored in RAM, which may not be ideal for large-scale applications. Future enhancements could focus on optimizing resource usage and implementing multithreading for improved performance and scalability. Splitting the file from the FrontEnd to the back is also an option. Additionally, it's worth noting that the program may crash if the file size exceeds 4.25GB. Considerations for handling larger files could be a potential area for improvement.
 
 ## Disclaimer
 
