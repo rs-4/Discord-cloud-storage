@@ -18,7 +18,7 @@ fileRouter.get('/', async (req: Request, res: Response) => {
   var ret = [];
 
   for (let x = 0; x < data.length; x++) {
-    ret.push({id:data[x]._id, name: data[x].filename, size: data[x].size});
+    ret.push({ id: data[x]._id, name: data[x].filename, size: data[x].size });
   }
 
   return res.status(200).send(ret)
@@ -34,7 +34,7 @@ fileRouter.get('/upload', async (req: Request, res: Response) => {
   io.emit(`downloadToken:${uploadToken}`, { uploadToken });
 
   // Now, return the download token to the client to initiate the download
-  return res.status(200).json({ uploadToken});
+  return res.status(200).json({ uploadToken });
 });
 
 
@@ -80,10 +80,10 @@ fileRouter.post('/download', downloadParse, async (req: Request, res: Response) 
   return res.status(200).json({ downloadToken, fileId: file._id });
 });
 
-fileRouter.get('/download', downloadParse,  async (req: Request, res: Response) => {
+fileRouter.get('/download', downloadParse, async (req: Request, res: Response) => {
   const fileClass = new FileHandlingClass(process.env.DISCORD_TOKEN as string)
-  const {id, name, downloadToken} = req.query
-  var file: {buffer: Buffer; filename: string;} | null = null
+  const { id, name, downloadToken } = req.query
+  var file: { buffer: Buffer; filename: string; } | null = null
 
   const io: socketIo.Server = req.app.get('socketIo');
 

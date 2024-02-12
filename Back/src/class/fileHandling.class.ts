@@ -72,7 +72,7 @@ class FileHandlingClass {
 
     }
 
-    public async retrieveFileById(id: string, downloadToken?: string, io?: socketIo.Server): Promise<{ buffer: Buffer, filename: string } | null>{
+    public async retrieveFileById(id: string, downloadToken?: string, io?: socketIo.Server): Promise<{ buffer: Buffer, filename: string } | null> {
         const fileDocument: FileInfoDocument | null = await FileInfo.findById(id);
         if (!fileDocument)
             return null;
