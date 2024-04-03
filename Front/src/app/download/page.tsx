@@ -1,9 +1,27 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Spinner } from "@nextui-org/react";
+import { Spinner, Tab } from "@nextui-org/react";
 import io from "socket.io-client";
 import DownloadCard from "../../components/downloadCard";
+import { Input } from "../../../components/ui/input";
+import { Files, Search } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Download } from "lucide-react";
+import { toast } from "sonner"
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import NoData from "@/components/noData";
+
 
 export interface FileInfo {
   name: string;
@@ -27,11 +45,21 @@ const Page = () => {
   const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [filteredFiles, setFilteredFiles] = useState<FileInfo[] | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+ const filteredFilesList = fileInfo?.filter((item) => {
+    return item.name.toLowerCase().includes(searchTerm.toLowerCase());
+  }
+  );
+
+
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/file");
+        const response = await fetch("/api/file");
         if (!response.ok) {
           throw new Error(
             `Network response was not ok: ${response.statusText}`
@@ -55,7 +83,7 @@ const Page = () => {
       const retrieveDownloadInfo = async () => {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/file/download?id=${download.id}`,
+            `/api/file/download?id=${download.id}`,
             {
               method: "POST",
             }
@@ -82,7 +110,7 @@ const Page = () => {
       const downloadFile = async () => {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/file/download?id=${download.id}&downloadToken=${downloadInfo.downloadToken}`
+            `/api/file/download?id=${download.id}&downloadToken=${downloadInfo.downloadToken}`
           );
           if (!response.ok) {
             throw new Error(
@@ -121,23 +149,88 @@ const Page = () => {
 
   }, [downloadInfo]);
 
-  if (loading) {
-    return <Spinner label="Loading..." color="default" />;
+  useEffect(() => {
+    setFilteredFiles(filteredFilesList as FileInfo[]);
+  }, [searchTerm, fileInfo]);
+
+
+  if(downloadProgress === 100) {
+    toast.success('Download Complete');
+    setDownloadProgress(0);
   }
 
+ console.log(downloadProgress);
+  
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
   return (
-    <div className="gap-2 grid grid-cols-2 sm:grid-cols-4">
-      {fileInfo &&
-        fileInfo.map((item, index) => (
-          <DownloadCard
-            key={index}
-            item={item}
-            download={download}
-            setDownloadStarter={setDownloadStarter}
-            progress={downloadProgress}
-          />
-        ))}
+    <NoData>
+
+
+    <div className="flex space-y-4 p-4 md:px-8 pt-4 flex-col">
+<div className="h-10 w-full relative">
+  <div className="absolute top-0 left-0 flex items-center pl-3 h-full">
+    <Search size={20} />
+  </div>
+  <Input
+    type="text"
+    placeholder="Search Document..."
+    className="pl-10 pr-3 py-2 text-md w-full b shadow-sm "
+    value={searchTerm}
+    onChange={handleSearchChange}
+
+  />
+</div>
+    <div className="w-full flex">
+      <Table>
+        <TableCaption>Files</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">File Name</TableHead>
+            <TableHead className="text-center">File Size (MB)</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredFiles?.map((file) => (
+            <TableRow
+              key={file.id}
+              onClick={() =>
+                setDownloadStarter({ id: file.id, active: true, name: file.name })
+              }
+              className="cursor-pointer"
+            >
+              <TableCell className="flex"><Files size={16}/>{file.name}</TableCell>
+              <TableCell className="text-center">
+                {(file.size / 1000000).toFixed(2)}
+              </TableCell>
+              <TableCell>
+                {download?.id === file.id && downloadProgress > 0 && downloadProgress < 100 ? (
+                  <>
+                    <div style={{ width: 25, height: 25 }}>
+                      <CircularProgressbar
+                        value={downloadProgress}
+                        styles={buildStyles({
+                          textColor: 'green',
+                          pathColor: 'green',
+                          trailColor: 'slate',
+                        })}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ width: 25, height: 25 }}>-</div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table> 
     </div>
+    </div>    
+    </NoData>
   );
 };
 

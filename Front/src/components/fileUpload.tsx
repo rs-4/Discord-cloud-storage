@@ -2,6 +2,10 @@
 import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Button, Progress } from "@nextui-org/react";
 import { io } from "socket.io-client";
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner";
+
 
 interface FileUploaderProps {
   acceptedFileTypes?: string[] | null;
@@ -67,7 +71,7 @@ export default function FileUploader(props: FileUploaderProps) {
       const retrieveDownloadInfo = async () => {
         try {
           const response = await fetch(
-            `http://localhost:8080/api/file/upload`,
+            `/api/file/upload`,
             {
               method: "GET",
             }
@@ -110,6 +114,7 @@ export default function FileUploader(props: FileUploaderProps) {
         .then(() => {
           setFileStatus((prev) => ({ ...prev, [file.name]: "Uploaded" }));
           setUploadSuccess(true);
+          toast.success("File uploaded successfully!");
         })
         .catch((error) => {
           setFileStatus((prev) => ({
@@ -138,9 +143,10 @@ export default function FileUploader(props: FileUploaderProps) {
   }, [uploadToken]);
 
   return (
-    <div className="flex flex-col gap-4 w-full h-60 md:h-48">
+    <div className="">
+    <div className="">
       {uploadSuccess ? (
-        <div className="flex flex-col gap-2">
+        <div className="">
           {isError ? (
             <span className="text-xs text-red-500">
               Upload completed, but with errors.
@@ -150,21 +156,21 @@ export default function FileUploader(props: FileUploaderProps) {
           )}
           <div className="btn-group w-full">
             <span className="btn btn-success w-1/2">Success!</span>
-            <Button color="secondary" onPress={resetUploader}>
+            <Button  onPress={resetUploader}>
               Upload Another
             </Button>
           </div>
         </div>
       ) : (
         <div className="form-control w-full">
-          <label className="label">
+          <Label className="label">
             <span className="label-text">{label}</span>
             <span className="label-text-alt">{labelAlt}</span>
-          </label>
+          </Label>
           {uploadToken === null ? (
-            <input
+            <Input
               type="file"
-              className="file-input file-input-bordered file-input-primary w-full"
+              className="file-input file-input-bordered file-input-primary w-full cursor-pointer"
               onChange={fileSelectedHandler}
               accept={
                 acceptedFileTypes ? acceptedFileTypes.join(",") : undefined
@@ -173,9 +179,9 @@ export default function FileUploader(props: FileUploaderProps) {
               multiple={false}
             />
           ) : null}
-          <label className="label">
+          <Label className="label text-center">
             <span className="label-text-alt text-red-500">{uploadError}</span>
-          </label>
+          </Label>
         </div>
       )}
 
@@ -200,6 +206,7 @@ export default function FileUploader(props: FileUploaderProps) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
