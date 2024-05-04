@@ -30,7 +30,7 @@ import {
     UserX2Icon,
     X,
     Files,
-    Upload
+    Upload,
   } from "lucide-react";
   
   export type Icon = LucideIcon;
